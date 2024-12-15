@@ -58,6 +58,13 @@ class NBayes:
         )
         return prob + log_probs
 
+    def predict_single(self, sample: np.ndarray) -> int:
+        class_probs = {
+            label: self._calculate_class_probability(sample, label)
+            for label in self.classes
+        }
+        return max(class_probs.items(), key=lambda x: x[1])[0]
+
     def predict(self, X: np.ndarray) -> np.ndarray:
         X = np.asarray(X, dtype=np.float64)
         predictions = np.zeros(X.shape[0], dtype=int)
@@ -66,7 +73,7 @@ class NBayes:
         with ThreadPoolExecutor() as executor:
             futures = []
             for i, sample in enumerate(X):
-                future = executor.submit(self._predict_single, sample)
+                future = executor.submit(self.predict_single, sample)
                 futures.append((i, future))
             
             for i, future in futures:
